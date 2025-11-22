@@ -1,0 +1,176 @@
+#include <stdlib.h>
+#include <iostream>
+
+using namespace std;
+
+void printMatr(int** data, int rows, int cols) {
+    cout << "Матрица " << rows << "x" << cols << endl;
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++)
+            cout << data[i][j] << "   ";
+        cout << endl;
+    }
+}
+
+int* zeroCol(int** data, int rows, int cols, int& resCount) {
+    resCount = 0;
+    int* zeroCols = (int*)calloc(cols, sizeof(int));
+    if (!zeroCols) return 0;
+
+    for (int j = 0; j < cols; j++) {
+        for (int i = 0; i < rows; i++) {
+            if (data[i][j] == 0) {
+                zeroCols[resCount] = j;
+                resCount++;
+                break;
+            }
+        }
+    }
+
+    if (resCount > 0) {
+        zeroCols = (int*)realloc(zeroCols, resCount * sizeof(int));
+        cout << "Столбцы для удаления: [ ";
+        for (int i = 0; i < resCount; i++) cout << zeroCols[i] << " ";
+        cout << "]" << endl;
+    }
+    return zeroCols;
+}
+
+void deleteCols(int** data, int rows, int& cols, int* colsRemove, int removeCount) {
+    if ((removeCount == 0) || (colsRemove == 0)) return;
+
+    if (removeCount == cols) {
+        for (int i = 0; i < rows; i++) {
+            free(data[i]);
+            data[i] = 0;
+        }
+        cols = 0;
+        return;
+    }
+
+    for (int i = 0; i < rows; i++) {
+        int newColIndex = 0;
+        for (int j = 0; j < cols; j++) {
+            bool keepCol = true;
+            for (int k = 0; k < removeCount; k++)
+                if (j == colsRemove[k]) {
+                    keepCol = false;
+                    break;
+                }
+            if (keepCol) {
+                data[i][newColIndex] = data[i][j];
+                newColIndex++;
+            }
+        }
+
+        int* newRow = (int*)realloc(data[i], (cols - removeCount) * sizeof(int));
+        if (newRow)
+            data[i] = newRow;
+    }
+    cols -= removeCount;
+}
+
+void processNumbers() {
+    float* value1 = new float;
+    float* value2 = new float;
+
+    cout << "Введите первое число: "; cin >> *value1;
+    cout << "Введите второе число: "; cin >> *value2;
+    float* ptr1 = value1;
+    float* ptr2 = value2;
+
+    cout << "До преобразований: первое= " << *ptr1 << " второе= " << *ptr2 << endl;
+    *ptr1 = *ptr1 * 3;
+    float tempValue = *ptr1;
+    *ptr1 = *ptr2;
+    *ptr2 = tempValue;
+
+    cout << "После преобразований: первое=" << *ptr1 << " второе=" << *ptr2 << endl;
+    delete value1;
+    delete value2;
+}
+
+int main() {
+    setlocale(LC_ALL, "Rus");
+    int A, B, C, D;
+
+    do {
+        cout << "Введите A: ";  cin >> A;
+        cout << "Введите B: ";  cin >> B;
+        if ((A < 0) || (B < 0)) {
+            cout << "Ошибка A и B должны быть неотрицательные" << endl;
+        }
+    } while ((A < 0) || (B < 0));
+
+    cout << "Введите C (коэф строк): "; cin >> C;
+    cout << "Введите D (коэф столбцов): "; cin >> D;
+
+    int** matr = (int**)malloc(2 * sizeof(int*));
+    if (!matr) return 1;
+
+    for (int i = 0; i < 2; i++) {
+        matr[i] = (int*)malloc(2 * sizeof(int));
+        if (!matr[i]) {
+            for (int j = 0; j < i; j++)
+                free(matr[j]);
+            free(matr);
+            return 2;
+        }
+    }
+
+    matr[0][0] = A;
+    matr[0][1] = B;
+    matr[1][0] = C;
+    matr[1][1] = D;
+    printMatr(matr, 2, 2);
+
+    int totalRows = 2 + A;
+    int totalCols = 2 + B;
+
+    matr = (int**)realloc(matr, totalRows * sizeof(int*));
+
+    for (int i = 2; i < totalRows; i++) {
+        if (i < 2) {
+            matr[i] = (int*)realloc(matr[i], totalCols * sizeof(int*));
+        }
+        else {
+            matr[i] = (int*)malloc(totalCols * sizeof(int));
+        }
+        if (!matr[i]) {
+            for (int j = 0; j < i; j++)
+                free(matr[j]);
+            free(matr);
+            return 5;
+        }
+    }
+
+    for (int i = 0; i < totalRows; i++) {
+        for (int j = 0; j < totalCols; j++) {
+            if ((i >= 2) || (j >= 2)) {
+                matr[i][j] = (i - 1) * C + (j - 1) * D;
+            }
+        }
+    }
+
+    printMatr(matr, totalRows, totalCols);
+
+    int zeroCount = 0;
+    int* zeroCols = zeroCol(matr, totalRows, totalCols, zeroCount);
+
+    if ((zeroCols != 0) && (zeroCount > 0)) {
+        deleteCols(matr, totalRows, totalCols, zeroCols, zeroCount);
+        printMatr(matr, totalRows, totalCols);
+        free(zeroCols);
+    }
+    else {
+        cout << "Удаление не требуется." << endl;
+    }
+
+    for (int i = 0; i < totalRows; i++) {
+        free(matr[i]);
+    }
+    free(matr);
+
+    processNumbers();
+    return 0;
+}
