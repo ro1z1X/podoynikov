@@ -1,0 +1,88 @@
+#include <string>
+#include <iostream>
+
+class Character {
+private:
+    std::string action;
+    float posY;
+    unsigned health;
+    std::string title;
+    float posX;
+
+public:
+    Character() {
+        std::cout << "Игрок создан" << std::endl;
+        title = "Без имени";
+        action = "бездействие";
+        health = 100;
+        posX = 0;
+        posY = 0;
+    }
+
+    Character(std::string t, std::string a, unsigned h, float px, float py) {
+        std::cout << "новый игрок" << std::endl;
+        title = t;
+        action = a;
+        health = h;
+        posX = px;
+        posY = py;
+    }
+
+    Character(const Character& other) {
+        std::cout << "игрок скопирован" << std::endl;
+        title = other.title;
+        action = other.action;
+        health = other.health;
+        posX = other.posX;
+        posY = other.posY;
+    }
+
+    ~Character() {
+        std::cout << "игрок удален" << std::endl;
+    }
+
+    void inf() const {
+        std::cout << "Имя: " << title << std::endl;
+        std::cout << "X: " << posX << std::endl;
+        std::cout << "Y: " << posY << std::endl;
+        std::cout << "Здоровье: " << health << std::endl;
+        std::cout << "Действие: " << action << std::endl;
+    }
+
+    std::string getTitle() const { return title; }
+    float getPosX() const { return posX; }
+    float getPosY() const { return posY; }
+    unsigned getHealth() const { return health; }
+    std::string getAction() const { return action; }
+
+    void setPosX(float px) { posX = px; }
+    void setPosY(float py) { posY = py; }
+    void moveTo(float px, float py) { posX = px; posY = py; }
+
+    void shot(int d) {
+        if (d < 0) return;
+        if (d >= health) health = 0;
+        else health -= d;
+    }
+
+    void heal(int h) {
+        if (h < 0) return;
+        if ((h + health) > 100) health = 100;
+        else if (health == 100) std::cout << "полное здоровье";
+        else health += h;
+    }
+};
+
+int main() {
+    std::setlocale(LC_ALL, "Russian");
+    Character p1;
+    Character p2(p1);
+    Character p3("игрок", "занят", 100, 1.5, 1.5);
+    p3.shot(40);
+    p3.inf();
+    p3.heal(90);
+    p3.shot(40);
+    p3.inf();
+
+    return 0;
+}
