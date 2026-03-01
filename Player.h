@@ -25,6 +25,8 @@ public:
     Player operator+(const Player& other) const;
     Player operator-(const Player& other) const;
 
+    Player& operator-=(const Player& other);
+
     void ChangeX(int value);
     void ChangeY(int value);
     void AddItem(string item);
