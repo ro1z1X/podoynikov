@@ -5,37 +5,31 @@
 
 using namespace std;
 
-static void CleanVector(vector<string>& vec) {
-    for (size_t a = 0; a < vec.size(); a++) {
-        for (size_t b = a + 1; b < vec.size(); ) {
-            if (vec[b] == vec[a]) {
-                vec.erase(vec.begin() + b);
-            }
-            else {
-                b++;
-            }
-        }
-    }
-}
-
 static void OutputInventory(const vector<string>& inv) {
-    if (inv.size() == 0) {
+    if (inv.empty()) {
         cout << "пусто";
     }
     else {
         for (size_t c = 0; c < inv.size(); c++) {
             cout << inv[c];
-            if (c != inv.size() - 1) cout << ", ";
+            if (c + 1 != inv.size()) cout << ", ";
         }
     }
     cout << endl;
 }
 
-static vector<string> CombineVectors(const vector<string>& v1, const vector<string>& v2) {
-    vector<string> result = v1;
-    for (const auto& element : v2) {
-        if (find(result.begin(), result.end(), element) == result.end()) {
-            result.push_back(element);
+static vector<string> CombineVectorsUnique(const vector<string>& v1, const vector<string>& v2) {
+    vector<string> result;
+    result.reserve(v1.size() + v2.size());
+
+    for (const auto& item : v1) {
+        if (find(result.begin(), result.end(), item) == result.end()) {
+            result.push_back(item);
+        }
+    }
+    for (const auto& item : v2) {
+        if (find(result.begin(), result.end(), item) == result.end()) {
+            result.push_back(item);
         }
     }
     return result;
@@ -54,7 +48,7 @@ Player::Player(const Player& source)
 }
 
 Player::~Player() {
-    if (m_items.size() > 0) {
+    if (!m_items.empty()) {
         m_items.clear();
         cout << "Инвентарь очищен" << endl;
     }
@@ -97,23 +91,30 @@ Player Player::operator/(const Player& rhs) const {
 
 Player Player::operator+(const Player& rhs) const {
     Player result = *this;
-    CleanVector(result.m_items);
     result.m_name = result.RandomName();
     result.m_x = (m_x + rhs.m_x) / 2;
     result.m_y = (m_y + rhs.m_y) / 2;
-    result.m_items = CombineVectors(m_items, rhs.m_items);
+
+    result.m_items = CombineVectorsUnique(m_items, rhs.m_items);
+
     return result;
+}
+
+Player& Player::operator-=(const Player& rhs) {
+    if (rhs.m_items.empty()) return *this;
+
+    string target = rhs.m_items[rand() % rhs.m_items.size()];
+    auto it = find(m_items.begin(), m_items.end(), target);
+    if (it != m_items.end()) {
+        m_items.erase(it);
+    }
+    return *this;
 }
 
 Player Player::operator-(const Player& rhs) const {
     Player result = *this;
+    result -= rhs;
     result.m_name = result.RandomName();
-    if (rhs.m_items.empty()) return result;
-    string target = rhs.m_items[rand() % rhs.m_items.size()];
-    auto it = find(result.m_items.begin(), result.m_items.end(), target);
-    if (it != result.m_items.end()) {
-        result.m_items.erase(it);
-    }
     return result;
 }
 
@@ -156,7 +157,7 @@ void Player::DecreaseHP(int amount) {
 
 void Player::DisplayItems() const {
     cout << "Предметы " << m_name << ":" << endl;
-    if (m_items.size() == 0) {
+    if (m_items.empty()) {
         cout << "пусто" << endl;
     }
     else {
