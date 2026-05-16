@@ -17,7 +17,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->costEdit->setValidator(new QDoubleValidator(0, 1000000, 2, this));
 
-    // Создаем пустой файл при запуске программы, если его нет
     createEmptyJsonFile();
 }
 
